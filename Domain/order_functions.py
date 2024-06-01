@@ -1,12 +1,6 @@
-import sys
-
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-
 from Domain.functions import bot_in_group
-
-sys.path.append("/telegram_bot")
 from Application.create_bot import bot
-sys.path.append("/telegram_bot/db")
 from ports.db import get_order, add_suggestion, add_question, get_setting
 from bot_config import ADMIN_ID
 
