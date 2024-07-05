@@ -20,7 +20,7 @@ import Application.Configs
 
 
 @dp.message(Command("start"))
-async def begin(message: types.Message, state: FSMContext):
+async def begin(message: types.Message, state: FSMContext) -> None:
     first_start = (await get_setting("first_start"))
     await state.clear()
     if first_start == '1' and message.from_user.id == ADMIN_ID:
@@ -49,12 +49,12 @@ async def begin(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🗑 Корзина", IsNotBanned())
-async def basket_show(message: types.Message, state: FSMContext):
+async def basket_show(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     games = '' #data[2][название, количество, (0-покупка, 1 - аренда, 2 - цифровой товар), общая сумма за товар]
     if data[2]:
         for i in range(len(data[2])):
@@ -73,7 +73,7 @@ async def basket_show(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🛒 Магазин")
-async def choose_game(message: types.Message, state: FSMContext):
+async def choose_game(message: types.Message, state: FSMContext) -> None:
     limit = int((await get_setting("limit_displayed_products")))
     data = (await get_data(message.from_user.id))
     if data == False:
@@ -96,45 +96,45 @@ async def choose_game(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🏠 Главное меню")
-async def main_menu(message: types.Message, state: FSMContext):
+async def main_menu(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await bot.send_message(message.chat.id, "<b>Вы вышли в главное меню</b>", parse_mode="html", reply_markup=(await main_menu_f(message)))
 
 
 @dp.message(F.text == "🌀 О нас")
-async def about_us(message: types.Message):
+async def about_us(message: types.Message) -> None:
     text = (await get_setting("mess_about_us"))
     await bot.send_message(message.chat.id, text, parse_mode="html")
 
 
 @dp.message(F.text == "⭐️ FAQ")
-async def faq(message: types.Message):
+async def faq(message: types.Message) -> None:
     text = (await get_setting("mess_faq"))
     await bot.send_message(message.chat.id, text, parse_mode="html")
 
 
 @dp.message(F.text == "❌ Отмена")
-async def cancel(message: types.Message, state: FSMContext):
+async def cancel(message: types.Message, state: FSMContext) -> None:
     await state.clear()
     await bot.send_message(message.chat.id, "❗ Действие отменено ❗", reply_markup=(await main_menu_f(message)), parse_mode="html")
 
 
 @dp.message(F.text == "🖌 Спросить", IsNotBanned())
-async def ask(message: types.Message, state: FSMContext):
+async def ask(message: types.Message, state: FSMContext) -> None:
     if not (await not_limit(message.from_user.id, 'question')):
         await bot.send_message(message.from_user.id, "❌ Ошибка, вы превысили лимит кол-ва вопросов в день!", reply_markup=(await main_menu_f(message)))
-        return 0
+        return
     await state.set_state(Ask.question)
     await bot.send_message(message.chat.id, "📋 Введите интересующий вас вопрос или нажмите кнопку 'Отмена'", reply_markup=cancel_markup, parse_mode="html")
 
 
 @dp.message(F.text == "✂️ Убрать из корзины", IsNotBanned())
-async def remove_product(message: types.Message, state: FSMContext):
+async def remove_product(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     rem_day = []
     for item in data[2]:
         product_id = (await get_product_id(item[0]))
@@ -151,21 +151,21 @@ async def remove_product(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🟢 Оформить", IsNotBanned())
-async def register_order(message: types.Message, state: FSMContext):
+async def register_order(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     if not (await not_limit(message.from_user.id, 'order')):
         await bot.send_message(message.from_user.id, "❌ Ошибка, вы превысили лимит количества заказов в день!", reply_markup=(await main_menu_f(message)))
-        return 0
+        return
     available = await is_available(data)
     if available != True:
         await bot.send_message(message.chat.id,
                                f"❌ Ошибка, '{available}' больше нет в наличии, либо такого кол-ва нет в наличии! ❌",
                                reply_markup=basket_markup)
-        return 0
+        return
     if (await is_only_online(data)):
         await bot.send_message(message.chat.id, "🌐 У вас корзине только цифровые товары. Их вам выдадут администраторы в личном чате.", reply_markup=cancel_markup)
         await add_order(data, "2", message.from_user.username)
@@ -192,12 +192,12 @@ async def register_order(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🚶🏻 Самовывоз", Shop.pickup_method)
-async def pickup_method(message: types.Message, state: FSMContext):
+async def pickup_method(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     pickup_address = (await get_setting("pickup_address"))
     await bot.send_message(message.chat.id, f"🗺 Самовывоз с адреса:\n{pickup_address}<b></b>", parse_mode="html", reply_markup=buy_markup)
     await state.set_state(Shop.pay)
@@ -205,13 +205,13 @@ async def pickup_method(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "🚗 Доставка", Shop.pickup_method)
-async def delivery_method(message: types.Message, state: FSMContext):
+async def delivery_method(message: types.Message, state: FSMContext) -> None:
     await bot.send_message(message.chat.id, "❗ Доставка оплачивается отдельно\n\nВведите адрес доставки или нажмите кнопку 'Отмена':", reply_markup=cancel_markup, parse_mode="html")
     await state.set_state(Address.address)
 
 
 @dp.message(F.text == "💰 Оплатить" or F.text == "🖌 Изменить метод оплаты", Shop.pay)
-async def to_pay(message: types.Message, state: FSMContext):
+async def to_pay(message: types.Message, state: FSMContext) -> None:
     pay_cash = (await get_setting("pay_cash"))
     pay_card = (await get_setting("pay_card"))
     if pay_cash == '1' and pay_card == '1':
@@ -229,18 +229,18 @@ async def to_pay(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "💳 Банковская карта", Shop.payment)
-async def card(message: types.Message, state: FSMContext):
+async def card(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     available = await is_available(data)
     if available != True:
         await bot.send_message(message.chat.id,
                                f"❌ Ошибка, '{available}' больше нет в наличии, либо такого кол-ва нет в наличии! ❌",
                                reply_markup=basket_markup)
-        return 0
+        return
     await bot.send_message(message.chat.id, "✅ Вы выбрали оплату картой")
     title =""
     for i in data[2]:
@@ -261,14 +261,14 @@ async def card(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "💵 Наличными", Shop.payment)
-async def cash(message: types.Message, state: FSMContext):
+async def cash(message: types.Message, state: FSMContext) -> None:
     await bot.send_message(message.chat.id, "✅ Вы выбрали оплату наличными", reply_markup=cash_markup)
     await add_pay_method("0", message.from_user.id)
     await state.set_state(Shop.finish)
 
 
 @dp.message(F.text == "✅ Подтвердить", Shop.finish)
-async def finish(message: types.Message, state: FSMContext):
+async def finish(message: types.Message, state: FSMContext) -> None:
     await bot.send_message(message.chat.id, "❇️ Ваш заказ принят, скоро с вами свяжется продавец", reply_markup=(await main_menu_f(message.from_user.id)))
     order_info = await get_order(message.from_user.id)
     if order_info[10] == '0':
@@ -277,13 +277,13 @@ async def finish(message: types.Message, state: FSMContext):
             await bot.send_message(message.from_user.id,
                                    "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
             await state.clear()
-            return 0
+            return
         available = await is_available(data)
         if available != True:
             await bot.send_message(message.chat.id,
                                    f"❌ Ошибка, '{available}' больше нет в наличии, либо такого кол-ва нет в наличии! ❌",
                                    reply_markup=basket_markup)
-            return 0
+            return
         await change_available(data)
     await send_order(message.from_user.id)
     await clear_data(message.from_user.id)
@@ -291,28 +291,28 @@ async def finish(message: types.Message, state: FSMContext):
 
 
 @dp.message(F.text == "✉️ Предложение", IsNotBanned())
-async def suggestion(message: types.Message, state: FSMContext):
+async def suggestion(message: types.Message, state: FSMContext) -> None:
     if not (await not_limit(message.from_user.id, 'suggestion')):
         await bot.send_message(message.from_user.id, "❌ Ошибка, вы превысили лимит кол-ва предложений в день!", reply_markup=(await main_menu_f(message)))
-        return 0
+        return
     await state.set_state(Suggestion.suggestion)
     await bot.send_message(message.chat.id, "⌨️ Введите то, что вы бы хотели видеть у нас в сервисе или нажмите кнопку 'Отмена'", reply_markup=cancel_markup)
     
 
 @dp.message(Address.address, IsNotCancel())
-async def load_address(message: types.Message, state: FSMContext):
+async def load_address(message: types.Message, state: FSMContext) -> None:
     data = (await get_data(message.from_user.id))
     if data == False:
         await bot.send_message(message.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     await bot.send_message(message.chat.id, "✅ Адрес записан", reply_markup=buy_markup)
     await add_order(data, "1", message.from_user.username, message.text)
     await state.set_state(Shop.pay)
 
 
 @dp.message(Suggestion.suggestion, IsNotCancel())
-async def load_answer(message: types.Message, state: FSMContext):
+async def load_answer(message: types.Message, state: FSMContext) -> None:
     suggestion = message.text
     await bot.send_message(message.chat.id, "📤 Спасибо, ваше предложение сохранено", reply_markup=(await main_menu_f(message)))
     await send_suggestion(suggestion, message.from_user.username, message.from_user.id)
@@ -320,7 +320,7 @@ async def load_answer(message: types.Message, state: FSMContext):
 
 
 @dp.message(Ask.question, IsNotCancel())
-async def load_suggestion(message: types.Message, state: FSMContext):
+async def load_suggestion(message: types.Message, state: FSMContext) -> None:
     question = message.text
     await bot.send_message(message.chat.id, "✳️ Ваш вопрос сохранен и отправлен продавцу", reply_markup=(await main_menu_f(message)))
     await send_question(question, message.from_user.username, message.from_user.id)
@@ -328,13 +328,13 @@ async def load_suggestion(message: types.Message, state: FSMContext):
 
 
 @dp.callback_query(Shop.delete, IsNotBanned())
-async def delete_product(callback: types.CallbackQuery, state: FSMContext):
+async def delete_product(callback: types.CallbackQuery, state: FSMContext) -> None:
     data = (await get_data(callback.from_user.id))
     product_name = (await get_product_name(int(callback.data)))
     if data == False:
         await bot.send_message(callback.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     data_mod = data
     for i in range(len(data[2])):
         if data[2][i][0] == product_name:
@@ -342,24 +342,24 @@ async def delete_product(callback: types.CallbackQuery, state: FSMContext):
             await bot.send_message(callback.from_user.id, f"✔️ '{product_name}' был удалён из корзины", reply_markup=basket_markup)
             await update_price(data_mod)
             await state.clear()
-            return 0
+            return
     await bot.send_message(callback.from_user.id, "❌ В вашей корзине нет такого товара!")
     await state.clear()
 
 
 @dp.callback_query(Shop.choose, IsNotBanned(), lambda c: c.data != "load_more")
-async def buy_or_arend(callback: types.CallbackQuery, state: FSMContext):
+async def buy_or_arend(callback: types.CallbackQuery, state: FSMContext) -> None:
     data = (await get_data(callback.from_user.id))
     product_name = (await get_product_name(int(callback.data)))
     if data == False:
         await bot.send_message(callback.from_user.id,
                                "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     limit = int((await get_setting("choices_limit")))
     if len(data[2]) >= limit:
         await bot.send_message(callback.from_user.id, "❌ Ошибка! Вы достигли лимита товаров в корзине", reply_markup=(await main_menu_f(callback)))
-        return 0
+        return
     info = await get_info(product_name)
     await state.update_data(product_name=product_name)
     if info[1] != 0 and info[2] != 0:
@@ -378,7 +378,7 @@ async def buy_or_arend(callback: types.CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(Shop.buy_or_arend, IsNotBanned())
-async def counts(callback: types.CallbackQuery, state: FSMContext):
+async def counts(callback: types.CallbackQuery, state: FSMContext) -> None:
     if callback.data == "add_buy":
         await state.update_data(type=0)
         await bot.send_message(callback.from_user.id, '✏️ Введите количество, которое вы хотите купить')
@@ -389,7 +389,7 @@ async def counts(callback: types.CallbackQuery, state: FSMContext):
 
 
 @dp.message(Shop.count)
-async def add_product(message: types.Message, state: FSMContext):
+async def add_product(message: types.Message, state: FSMContext) -> None:
     if message.text.isdigit():
         if int(message.text) > 0:
             data = (await get_data(message.from_user.id))
@@ -397,12 +397,12 @@ async def add_product(message: types.Message, state: FSMContext):
                 await bot.send_message(message.from_user.id,
                                        "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
                 await state.clear()
-                return 0
+                return
             data_product = await state.get_data()
             data = await product_to_data(data, data_product['product_name'], int(message.text), data_product['type'])
             if data == False:
                 await bot.send_message(message.from_user.id, "❌ Ошибка! вы не можете добавить такое количество!", reply_markup=(await main_menu_f(message)))
-                return 0
+                return
             await update_data(data)
             await update_price(data)
             await bot.send_message(message.from_user.id, "🟢 Успешно добавлено!", reply_markup=(await main_menu_f(message)))
@@ -415,13 +415,13 @@ async def add_product(message: types.Message, state: FSMContext):
 
 
 @dp.callback_query(lambda c: c.data)
-async def load_more(callback: types.CallbackQuery, state: FSMContext):
+async def load_more(callback: types.CallbackQuery, state: FSMContext) -> None:
     limit = int((await get_setting("limit_displayed_products")))
     data = (await get_data(callback.from_user.id))
     if data == False:
         await bot.send_message(callback.from_user.id, "📛 Ошибка! 📛\nКажется, бот потерял ваши данные. Для их восстановления напишите '/start'")
         await state.clear()
-        return 0
+        return
     if callback.data == "load_more":
         await print_products(callback.from_user.id, data[6], limit, data[1])
         data[6] += limit

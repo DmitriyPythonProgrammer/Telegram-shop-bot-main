@@ -4,7 +4,7 @@ from ports.db import get_setting, truncate_settings, add_setting
 
 
 class Settings:
-    def __init__(self):
+    def __init__(self) -> None:
         self.sections = {'Main': '👨🏼‍🔧 Основные настройки', 'Messages': '💬 Сообщения', 'Store': '🛍️ Настройки магазина', 'Security': '🔐 Безопасность'}
         # section_name: section_text_for_user
         self.default_settings = []
@@ -31,11 +31,11 @@ class Settings:
         #[section, settings_name, default_value, settings_text_for_user, changeable, may_be_empty, type]
         self.settings = self.default_settings
 
-    async def update(self):
+    async def update(self) -> None:
         for i in range(len(self.settings)):
             self.settings[i][2] = (await get_setting(self.settings[i][1]))
 
-    def markup_sections(self):
+    def markup_sections(self) -> list:
         result = []
         for i in self.sections.keys():
             result.append([KeyboardButton(text=self.sections[i])])
@@ -43,7 +43,7 @@ class Settings:
         result.append([KeyboardButton(text='🏠 Главное меню')])
         return result
 
-    async def markup_settings(self, message: Message):
+    async def markup_settings(self, message: Message) -> list:
         result = []
         section = ''
         for i in self.sections:
@@ -57,16 +57,16 @@ class Settings:
 
         return result
 
-    async def check_settings(self):
+    async def check_settings(self) -> None:
         print("Checking the correctness of the settings...")
         for i in range(len(self.default_settings)):
             setting = (await get_setting(self.default_settings[i][1]))
             if setting is None:
                 await self.set_default_settings()
-                return 0
+                return
         print("Successfully!")
 
-    async def set_default_settings(self):
+    async def set_default_settings(self) -> None:
         print("An error was found in the settings table")
         print("Setting default settings...")
         await truncate_settings()

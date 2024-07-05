@@ -27,11 +27,11 @@ buy_or_arend_markup = InlineKeyboardMarkup(resize_keyboard=True, row_width=2, in
 add_group_markup = InlineKeyboardMarkup(resize_keyboard=True, row_width=2, inline_keyboard=add_group)
 
 
-async def settings_markup(message: Message):
+async def settings_markup(message: Message) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, keyboard=(await settings.markup_settings(message)))
 
 
-def change_settings_markup(setup):
+def change_settings_markup(setup: list) -> ReplyKeyboardMarkup:
     change_settings_btn = KeyboardButton(text=f"🔧 Изменить настройку '{setup[3]}'")
     change_settings = [
         [change_settings_btn],
@@ -41,7 +41,7 @@ def change_settings_markup(setup):
     return ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, keyboard=change_settings)
 
 
-async def main_menu_f(output):
+async def main_menu_f(output: Message | int) -> ReplyKeyboardMarkup:
     if isinstance(output, Message) or isinstance(output, CallbackQuery):
         user_id = output.from_user.id
     else:
@@ -51,7 +51,7 @@ async def main_menu_f(output):
     return main_markup
 
 
-def admin_markup_f(output):
+def admin_markup_f(output: Message | int) -> ReplyKeyboardMarkup:
     if isinstance(output, Message) or isinstance(output, CallbackQuery):
         user_id = output.from_user.id
     else:
@@ -62,7 +62,7 @@ def admin_markup_f(output):
         return admin_markup
 
 
-def pay_menu(isUrl=True, url="", bill=""):
+def pay_menu(isUrl: bool = True, url: str = "", bill: str = "") -> InlineKeyboardMarkup:
     qiwi_menu = InlineKeyboardMarkup(row_width=1, inline_keyboard=[])
     if isUrl:
         urlQiwi = [[InlineKeyboardButton(text="Ссылка на оплату", url=url)]]
@@ -71,7 +71,7 @@ def pay_menu(isUrl=True, url="", bill=""):
     qiwi_menu.add(checkQiwi)
     return qiwi_menu
 
-async def admin_list_markup():
+async def admin_list_markup() -> ReplyKeyboardMarkup:
     admin_list = (await return_admins_usernames())
     admin_list_kb = []
     for i in admin_list:

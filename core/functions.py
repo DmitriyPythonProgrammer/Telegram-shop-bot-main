@@ -5,7 +5,7 @@ from ports.db import *
 from Application.markups import *
 
 
-async def update_price(data):
+async def update_price(data: list) -> None:
     price = 0
     rent_price = 0
     final_deposit = 0
@@ -29,7 +29,7 @@ async def update_price(data):
     await update_data(data)
 
 
-async def product_to_data(data, product_name, product_count, type):
+async def product_to_data(data: list, product_name: str, product_count: int, type: str) -> list | bool:
     limit = int((await get_setting("product_limit")))
     if product_count > limit:
         return False
@@ -44,7 +44,7 @@ async def product_to_data(data, product_name, product_count, type):
     return data
 
 
-async def is_available(data):
+async def is_available(data: list) -> bool | any:
     for i in data[2]:
         if i[2] == '0':
             if (await return_available(i[0]))[0] - int(i[1]) < 0:
@@ -55,7 +55,7 @@ async def is_available(data):
     return True
 
 
-async def change_available(data):
+async def change_available(data: list) -> None:
     minus_if_rent = (await get_setting("minus_if_rent"))
     for i in data[2]:
         if i[2] == '0' or i[2] == '2':
@@ -65,7 +65,7 @@ async def change_available(data):
                 await add_value(i[0], -1)
 
 
-async def print_products(id, offset, limit, showed):
+async def print_products(id: int, offset: int, limit: int, showed: int) -> None:
     for obj in await return_products(offset, limit):
         text = 'Ошибка!'
         action = 'Ошибка!'
@@ -105,7 +105,7 @@ async def print_products(id, offset, limit, showed):
         await bot.send_message(id, f"Показано <b>{showed}</b> товаров из <b>{counter}</b>")
 
 
-async def not_limit(id, item):
+async def not_limit(id: int, item: str) -> bool:
     dates = 0
     limit = 1
     if item == 'order':
@@ -134,13 +134,13 @@ async def not_limit(id, item):
         return True
 
 
-async def is_only_online(data):
+async def is_only_online(data: list) -> bool:
     for i in data[2]:
         if i[2] == '0' or i[2] == '1':
             return False
     return True
 
-async def is_number(message: types.Message):
+async def is_number(message: types.Message) -> bool:
     if message.text.isdigit():
         return True
     else:
@@ -148,7 +148,7 @@ async def is_number(message: types.Message):
         return False
 
 
-async def is_photo(message: types.Message):
+async def is_photo(message: types.Message) -> bool:
     if message.photo != None:
         return True
     else:
@@ -156,14 +156,14 @@ async def is_photo(message: types.Message):
         return False
 
 
-async def bot_in_group(group_id):
+async def bot_in_group(group_id: int) -> bool:
     try:
         await bot.get_chat_member(chat_id=group_id, user_id=bot.id)
         return True
     except:
         return False
 
-async def online_product_in_shop():
+async def online_product_in_shop() -> bool | str:
     products = (await get_all_products())
     input = ''
     for i in products:
@@ -175,7 +175,7 @@ async def online_product_in_shop():
         return input
 
 
-async def not_online_product_in_shop():
+async def not_online_product_in_shop() -> bool | str:
     products = (await get_all_products())
     input = ''
     for i in products:

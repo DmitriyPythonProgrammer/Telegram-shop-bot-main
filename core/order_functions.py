@@ -5,7 +5,7 @@ from ports.db import get_order, add_suggestion, add_question, get_setting
 from bot_config import ADMIN_ID
 
 
-async def send_suggestion(suggestion, name, id):
+async def send_suggestion(suggestion: str, name: str, id: int) -> None:
     admins_id = (await get_setting("suggestions_group"))
     if admins_id == '' or not (await bot_in_group(admins_id)):
         admins_id = ADMIN_ID
@@ -16,7 +16,7 @@ async def send_suggestion(suggestion, name, id):
     await add_suggestion(name, id, suggestion)
 
 
-async def send_order(id):
+async def send_order(id: int)  -> None:
     admins_id = (await get_setting("orders_group"))
     if admins_id == '' or not (await bot_in_group(admins_id)):
         admins_id = ADMIN_ID
@@ -64,7 +64,7 @@ async def send_order(id):
     await bot.send_message(admins_id, text=str, reply_markup=get_order_markup)
 
 
-async def send_question(question, name, id):
+async def send_question(question: str, name: str, id: int) -> None:
     admins_id = (await get_setting("questions_group"))
     if admins_id == '' or not (await bot_in_group(admins_id)):
         admins_id = ADMIN_ID
@@ -74,6 +74,6 @@ async def send_question(question, name, id):
     await add_question(name, id, question)
 
 
-async def new_admin(message: Message):
+async def new_admin(message: Message) -> None:
     admins_id = int(ADMIN_ID)
     await bot.send_message(admins_id, f"❗<b>Активирован админ-аккаунт!</b>❗\nНик: {message.from_user.username}\nID: {message.from_user.id}")
